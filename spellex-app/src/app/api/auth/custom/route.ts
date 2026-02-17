@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
     try {
-        const { username, password, role, isRegistering } = await req.json();
+        const { username, password, role, className, isRegistering } = await req.json();
 
         if (!username || !password) {
             return NextResponse.json(
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
                     username,
                     password: hashedPassword,
                     role: role || "STUDENT",
+                    className: className || "Default",
                 },
             });
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
             // For this implementation, we'll return the user info.
             return NextResponse.json({
                 message: "User created successfully",
-                user: { id: user.id, username: user.username, role: user.role }
+                user: { id: user.id, username: user.username, role: user.role, className: user.className }
             });
         } else {
             // Login logic
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.json({
                 message: "Login successful",
-                user: { id: user.id, username: user.username, role: user.role }
+                user: { id: user.id, username: user.username, role: user.role, className: user.className }
             });
         }
     } catch (error) {

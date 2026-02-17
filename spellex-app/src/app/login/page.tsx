@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { LogIn, UserPlus, ShieldCheck, ArrowLeft, KeyRound, User as UserIcon } from 'lucide-react';
+import { LogIn, UserPlus, ShieldCheck, ArrowLeft, KeyRound, User as UserIcon, Users } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/components/AssessmentItems';
 
@@ -15,6 +15,7 @@ export default function LoginPage() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [className, setClassName] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +34,7 @@ export default function LoginPage() {
             const response = await fetch('/api/auth/custom', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, role, isRegistering }),
+                body: JSON.stringify({ username, password, role, className, isRegistering }),
             });
 
             const data = await response.json();
@@ -98,6 +99,20 @@ export default function LoginPage() {
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all font-semibold"
                                 />
                             </div>
+
+                            {isRegistering && (
+                                <div className="relative group">
+                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="Class Name (e.g. Class 2A)"
+                                        value={className}
+                                        onChange={(e) => setClassName(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all font-semibold"
+                                    />
+                                </div>
+                            )}
 
                             <div className="relative group">
                                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />

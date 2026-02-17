@@ -1,13 +1,64 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import { getAllResults } from '@/lib/actions';
-import { Trophy, Calendar, User, ChevronRight, BarChart3, LayoutDashboard, Bookmark } from 'lucide-react';
+import { Trophy, Calendar, User, ChevronRight, BarChart3, LayoutDashboard, Bookmark, Filter } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function TeacherDashboard() {
-    const { results, success, error } = await getAllResults();
+export default function TeacherDashboard() {
+    const [results, setResults] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [teacherClass, setTeacherClass] = useState('');
 
-    if (!success) {
-        return <div className="p-20 text-center text-red-500 font-bold">Error loading dashboard: {error}</div>;
+    useEffect(() => {
+        const userStr = window.localStorage.getItem('spellex-user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            setTeacherClass(user.className || 'Default');
+            fetchResults(user.className);
+        } else {
+            setError('Not authenticated');
+            setIsLoading(false);
+        }
+    }, []);
+
+    const fetchResults = async (className?: string) => {
+        setIsLoading(true);
+        try {
+            const { results: data, success, error: fetchError } = await getAllResults(className);
+            if (success) {
+                setResults(data || []);
+            } else {
+                setError(fetchError || 'Failed to fetch results');
+            }
+        } catch (err) {
+            setError('An error occurred while fetching');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
+                <div className="bg-white p-12 rounded-[40px] shadow-xl border border-slate-100 max-w-md w-full">
+                    <p className="text-red-500 font-black text-xl mb-4">Error loading dashboard</p>
+                    <p className="text-slate-500 font-medium mb-8">{error}</p>
+                    <Link href="/login?role=TEACHER" className="inline-block px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-colors">
+                        Return to Login
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     const averageScore = results?.length
@@ -22,9 +73,15 @@ export default async function TeacherDashboard() {
                         <div className="bg-indigo-600 p-2 rounded-xl">
                             <LayoutDashboard className="text-white" size={24} />
                         </div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Teacher Console</h1>
+                        <div>
+                            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Teacher Console</h1>
+                            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mt-0.5">
+                                <Filter size={10} className="text-indigo-400" />
+                                <span>Class: {teacherClass}</span>
+                            </div>
+                        </div>
                     </div>
-                    <Link href="/" className="text-slate-400 font-bold hover:text-slate-600 transition-colors uppercase text-xs tracking-widest">Sign Out</Link>
+                    <Link href="/" onClick={() => window.localStorage.removeItem('spellex-user')} className="text-slate-400 font-bold hover:text-slate-600 transition-colors uppercase text-xs tracking-widest">Sign Out</Link>
                 </div>
             </header>
 
@@ -64,7 +121,7 @@ export default async function TeacherDashboard() {
                 <div className="bg-white rounded-[40px] shadow-xl border border-slate-100 overflow-hidden">
                     <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center">
                         <h2 className="text-xl font-black text-slate-900">Student Results</h2>
-                        <span className="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">Live Updates</span>
+                        <span className="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">{teacherClass} Live Feed</span>
                     </div>
 
                     <div className="overflow-x-auto">
@@ -116,7 +173,7 @@ export default async function TeacherDashboard() {
 
                     {results?.length === 0 && (
                         <div className="p-20 text-center text-slate-300 font-bold text-lg italic">
-                            No student results found yet.
+                            No student results found for {teacherClass}.
                         </div>
                     )}
                 </div>

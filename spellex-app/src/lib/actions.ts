@@ -45,13 +45,19 @@ export async function submitAssessment(data: {
     }
 }
 
-export async function getAllResults() {
+export async function getAllResults(className?: string) {
     try {
         const results = await prisma.assessmentResult.findMany({
+            where: className ? {
+                student: {
+                    className: className
+                }
+            } : {},
             include: {
                 student: {
                     select: {
                         username: true,
+                        className: true,
                     },
                 },
             },
