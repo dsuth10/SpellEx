@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
 
 export async function submitAssessment(data: {
     username: string;
@@ -70,5 +71,95 @@ export async function getAllResults(className?: string) {
     } catch (error) {
         console.error("Fetch error:", error);
         return { success: false, error: "Failed to fetch results" };
+    }
+}
+
+export async function createStudent(data: {
+    username: string;
+    password: string;
+    className: string;
+}) {
+    try {
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { username: data.username },
+        });
+
+        if (existingUser) {
+            return { success: false, error: "Username already taken" };
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        // Create student
+        await prisma.user.create({
+            data: {
+                username: data.username,
+                password: hashedPassword,
+                role: "STUDENT",
+                className: data.className,
+            },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Create student error:", error);
+        return { success: false, error: "Failed to create student" };
+    }
+}
+
+export async function bulkCreateStudents(students: { username: string; password: string }[], className: string) {
+    try {
+        const results = {
+            successCount: 0,
+            failedCount: 0,
+            errors: [] as string[],
+        };
+
+        for (const student of students) {
+            const createResult = await createStudent({
+                username: student.username,
+                password: student.password,
+                className: className,
+            });
+
+            if (createResult.success) {
+                results.successCount++;
+            } else {
+                results.failedCount++;
+                results.errors.push(`${student.username}: ${createResult.error}`);
+            }
+        }
+
+        return { success: true, ...results };
+    } catch (error) {
+        console.error("Bulk create error:", error);
+        return { success: false, error: "Bulk creation failed" };
+    }
+}
+
+export async function getStudentsByClass(className: string) {
+    try {
+        const students = await prisma.user.findMany({
+            where: {
+                className: className,
+                role: "STUDENT",
+            },
+            select: {
+                id: true,
+                username: true,
+                className: true,
+                createdAt: true,
+            },
+            orderBy: {
+                username: "asc",
+            },
+        });
+
+        return { success: true, students };
+    } catch (error) {
+        console.error("Fetch students error:", error);
+        return { success: false, error: "Failed to fetch students" };
     }
 }
