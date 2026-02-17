@@ -51,7 +51,9 @@ export default function AssessmentPage() {
     const result = await submitAssessment({
       username: student.username,
       lessonId: lesson6.lessonId,
+      assessmentName: lesson6.title,
       part1Score: scores.part1,
+      part2Score: 0, // Placeholder
       part3Score: scores.part3,
       part4Score: scores.part4,
       part5Score: scores.part5,

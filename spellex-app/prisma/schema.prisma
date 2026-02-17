@@ -24,7 +24,9 @@ model AssessmentResult {
   studentId   String
   student     User     @relation(fields: [studentId], references: [id])
   lessonId    String
+  assessmentName String @default("Assessment")
   part1Score  Int
+  part2Score  Int      @default(0)
   part3Score  Int
   part4Score  Int
   part5Score  Int

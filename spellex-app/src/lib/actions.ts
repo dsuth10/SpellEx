@@ -5,7 +5,9 @@ import { prisma } from "./prisma";
 export async function submitAssessment(data: {
     username: string;
     lessonId: string;
+    assessmentName: string;
     part1Score: number;
+    part2Score: number;
     part3Score: number;
     part4Score: number;
     part5Score: number;
@@ -26,7 +28,9 @@ export async function submitAssessment(data: {
             data: {
                 studentId: user.id,
                 lessonId: data.lessonId,
+                assessmentName: data.assessmentName,
                 part1Score: data.part1Score,
+                part2Score: data.part2Score,
                 part3Score: data.part3Score,
                 part4Score: data.part4Score,
                 part5Score: data.part5Score,
